@@ -44,7 +44,7 @@ def initialize_session_state():
 def display_sidebar():
     """Display sidebar with profile info and controls."""
     with st.sidebar:
-        st.title("🎯 Profile Optimizer")
+        st.title("Profile Optimizer")
         
         st.markdown("---")
         
@@ -56,7 +56,7 @@ def display_sidebar():
             help="Paste your LinkedIn profile URL here"
         )
         
-        if st.button("🔄 Load Profile", type="primary", use_container_width=True):
+        if st.button("Load Profile", type="primary", use_container_width=True):
             if linkedin_url:
                 with st.spinner("Scraping LinkedIn profile..."):
                     load_linkedin_profile(linkedin_url)
@@ -67,13 +67,17 @@ def display_sidebar():
         
         # Profile Status
         if st.session_state.profile_loaded:
-            st.success("✅ Profile Loaded")
+            st.success("Profile Loaded!")
             profile = st.session_state.memory_manager.get_profile()
             if profile:
                 st.write(f"**Name:** {profile.get('full_name', 'N/A')}")
                 st.write(f"**Headline:** {profile.get('headline', 'N/A')[:50]}...")
+            
+            # Analyze Profile button - placed right after profile loads
+            if st.button("📊 Analyze Profile", type="primary", use_container_width=True):
+                handle_quick_action("Analyze my LinkedIn profile")
         else:
-            st.info("📝 No profile loaded yet")
+            st.info("No profile loaded yet")
         
         st.markdown("---")
         
@@ -160,7 +164,7 @@ Requirements:
             use_online_search = st.checkbox(
                 "🔍 Search for real job postings online",
                 value=st.session_state.get('use_online_search', False),
-                help="Uses Tavily API to fetch actual job descriptions (requires API key)"
+                help="Uses Tavily API to fetch actual job descriptions"
             )
             
             st.session_state.use_online_search = use_online_search
@@ -168,19 +172,10 @@ Requirements:
             if use_online_search and not settings.tavily_api_key:
                 st.warning("⚠️ Tavily API key not configured. Will use default JD database.")
         
-        st.markdown("---")
-        
-        # Quick Actions
-        st.subheader("⚡ Quick Actions")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.button("📊 Analyze Profile", use_container_width=True):
-                handle_quick_action("Analyze my LinkedIn profile")
-        
-        with col2:
-            if st.button("🎯 Job Match", use_container_width=True):
+        # Job Fit Analysis button - placed after Job Description section
+        if st.session_state.profile_loaded:
+            st.markdown("")  # Small spacing
+            if st.button("🎯 Job Fit Analysis", type="primary", use_container_width=True):
                 if target_role:
                     # Build query with custom JD info
                     if st.session_state.get('custom_jd'):
