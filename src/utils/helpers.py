@@ -1,13 +1,34 @@
 """Helper functions for data processing and analysis."""
 
 import re
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 import json
 from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+
+
+def extract_message_content(message: Union[object, Dict[str, Any]]) -> str:
+    """
+    Safely extract content from message (handles both AIMessage objects and dict).
+    
+    Args:
+        message: Either an AIMessage object or a dictionary
+        
+    Returns:
+        The message content as a string
+    """
+    if hasattr(message, 'content'):
+        # It's an AIMessage or similar LangChain object
+        return str(message.content)
+    elif isinstance(message, dict):
+        # It's a dictionary
+        return message.get("content", "")
+    else:
+        # Fallback to string conversion
+        return str(message)
 
 
 def sanitize_text(text: str) -> str:

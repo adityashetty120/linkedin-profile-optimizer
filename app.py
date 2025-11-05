@@ -8,7 +8,7 @@ from src.services import LinkedInScraper, LLMService
 from src.memory import MemoryManager
 from src.graph import create_workflow, GraphState
 from src.config.settings import settings
-from src.utils.helpers import format_profile_data
+from src.utils.helpers import format_profile_data, extract_message_content
 
 
 # Page configuration
@@ -331,11 +331,28 @@ def process_user_query(query: str):
         workflow_app = st.session_state.workflow.compile()
         result = workflow_app.invoke(initial_state)
         
-        # Get assistant response
+        # Get assistant response - Handle both AIMessage objects and dict messages
         if result["messages"]:
             last_message = result["messages"][-1]
-            if last_message["role"] == "assistant":
-                st.session_state.messages.append(last_message)
+            
+            # Extract content safely using helper function
+            assistant_message = extract_message_content(last_message)
+            
+            # Determine message role
+            if hasattr(last_message, 'type'):
+                message_role = last_message.type
+            elif isinstance(last_message, dict):
+                message_role = last_message.get("role", "assistant")
+            else:
+                message_role = "assistant"
+            
+            # Only append if it's an assistant message
+            if message_role in ["assistant", "ai"]:
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": assistant_message
+                })
+                memory_manager.add_message("assistant", assistant_message)
     
     except Exception as e:
         error_msg = f"❌ Error processing query: {str(e)}"
@@ -343,6 +360,9 @@ def process_user_query(query: str):
             "role": "assistant",
             "content": error_msg
         })
+        print(f"[ERROR] {error_msg}")
+        import traceback
+        print(f"[ERROR TRACEBACK]\n{traceback.format_exc()}")
 
 
 def display_chat_interface():
