@@ -2,100 +2,134 @@
 
 ## Overview
 
-The LinkedIn Profile Optimizer is built using a multi-agent architecture powered by LangGraph, with each agent specializing in specific tasks.
+Multi-agent system built with **LangGraph** where specialized agents handle profile analysis, job matching, content generation, and career counseling. Routes user queries intelligently and maintains conversation context through persistent memory.
 
-## Components
+## Architecture Layers
 
-### 1. Frontend Layer (Streamlit)
-- User interface for profile input and chat interaction
+### 1. Frontend (Streamlit)
+- Conversational UI with chat interface
+- Sidebar for profile loading and configuration
 - Session state management
-- Real-time response display
+- Real-time streaming responses
 
-### 2. Agent Layer
-Four specialized agents handle different tasks:
+### 2. Multi-Agent System
 
-#### Profile Analyzer Agent
-- Evaluates profile completeness
-- Identifies gaps and weak sections
-- Provides actionable feedback
-
-#### Job Matcher Agent
-- Compares profiles with job descriptions
-- Calculates semantic similarity scores
-- Identifies missing skills and keywords
-
-#### Content Generator Agent
-- Rewrites profile sections
-- Optimizes for ATS systems
-- Incorporates relevant keywords
-
-#### Career Counselor Agent
-- Provides career guidance
-- Identifies skill gaps
-- Suggests learning paths
+| Agent | Responsibility |
+|-------|---------------|
+| **Profile Analyzer** | Evaluates completeness, assigns grades, identifies gaps |
+| **Job Matcher** | Calculates match scores, finds missing skills, compares with JD |
+| **Content Generator** | Rewrites sections, optimizes for ATS, adds keywords |
+| **Career Counselor** | Career guidance, skill development paths, learning resources |
 
 ### 3. Service Layer
-- **LLM Service**: Handles AI model interactions
-- **LinkedIn Scraper**: Integrates with Apify for profile extraction
-- **Job Description Service**: Manages job description retrieval
+- **LLM Service** - Google Gemini API integration (gemini-2.5-flash)
+- **LinkedIn Scraper** - Apify actor for profile extraction
+- **Job Description Service** - Default JD database + Tavily search (optional)
 
-### 4. Memory Layer
-- **Session Memory**: Temporary conversation context
-- **Persistent Memory**: Long-term user data storage
-- **Checkpointer**: LangGraph state persistence
+### 4. Memory System
+- **Memory Manager** - Session-based conversation context
+- **Checkpointer** - LangGraph state persistence
+- **JSON Storage** - File-based user profile and session data
 
-### 5. Workflow (LangGraph)
-Orchestrates the flow between agents:
-1. Router determines which agent to use
-2. Selected agent processes the query
-3. Response formatter prepares the output
-4. Memory system stores the interaction
+### 5. LangGraph Workflow
 
-## Data Flow
-User Input → Router → Agent Selection → Processing → Response Formatting → Output
-                ↓                           ↓
-          Memory Storage              Results Cache
-````
+```
+User Query
+    ↓
+Router Node (LLM determines agent)
+    ↓
+Agent Node (Process query)
+    ↓
+Response Formatter
+    ↓
+Memory Storage → User Response
+```
+
+**Key Features:**
+- Dynamic agent routing based on query intent
+- State management via `GraphState` class
+- Memory integration for context-aware responses
+- Checkpointing for conversation persistence
 
 ## Technology Stack
 
-- **Frontend**: Streamlit
-- **AI Framework**: LangChain, LangGraph
-- **LLM Providers**: Google Gemini (gemini-2.5-flash)
-- **Web Scraping**: Apify LinkedIn Scraper
-- **Data Processing**: pandas, scikit-learn, sentence-transformers
-- **Storage**: JSON-based file storage
+| Layer | Technology |
+|-------|-----------|
+| **UI** | Streamlit |
+| **Framework** | LangChain, LangGraph |
+| **LLM** | Google Gemini 2.5 Flash |
+| **Scraping** | Apify (LinkedIn Profile Scraper actor) |
+| **Embeddings** | sentence-transformers |
+| **Storage** | JSON files (session-based) |
+| **Config** | python-dotenv, pydantic-settings |
 
 ## Design Patterns
 
-### Multi-Agent Pattern
-Each agent is independent and specialized, coordinated through LangGraph's state management.
+**1. Multi-Agent Pattern**
+- Independent, specialized agents
+- Coordinated via LangGraph state graph
+- Router-based dynamic agent selection
 
-### Memory Pattern
-Implements both short-term (session) and long-term (persistent) memory for context retention.
+**2. Memory Pattern**
+- Session-based conversation context
+- Profile and analysis caching
+- JSON persistence for user data
 
-### Service Pattern
-External integrations are abstracted into service classes for maintainability.
+**3. Service Pattern**
+- External APIs abstracted into services
+- Separation of concerns (scraping, LLM, job search)
+- Easy to swap implementations
 
-## Security Considerations
+**4. State Management**
+- LangGraph `GraphState` with typed fields
+- Immutable state transitions
+- Memory checkpointing for resumability
 
-- API keys stored in environment variables
-- User data stored locally with session isolation
-- No sensitive profile data transmitted except through secure APIs
+## Data Flow Details
 
-## Scalability
+### Profile Loading
+```
+LinkedIn URL → Apify API → Raw JSON → MemoryManager → GraphState
+```
 
-- Stateless agent design allows horizontal scaling
-- Memory system can be migrated to database (PostgreSQL, Redis)
-- Agent processing can be parallelized for multiple users
+### Query Processing
+```
+User Query → LLM Router → Agent Selection → Agent Processing
+    ↓                                              ↓
+Memory Context                            LLM Service (Gemini)
+    ↓                                              ↓
+Previous Analyses                          Formatted Response
+    ↓                                              ↓
+    └──────────────── Memory Storage ←─────────────┘
+```
 
-## Future Enhancements
+### Job Matching
+```
+Custom JD / Online Search (Tavily) → Job Description Service
+    ↓
+Profile + JD → Job Matcher Agent → Similarity Score + Gap Analysis
+```
 
-1. Database integration (PostgreSQL)
-2. Caching layer (Redis)
-3. Async processing for better performance
-4. Advanced analytics dashboard
-5. Multi-language support
-````
+## Security & Privacy
+
+✅ API keys in `.env` (not committed)  
+✅ Session isolation (UUID-based)  
+✅ Local data storage  
+✅ No profile data logging  
+✅ Secure API communication (HTTPS)
+
+## Scalability Considerations
+
+**Current:**
+- File-based storage (good for single user)
+- Synchronous processing
+- Local session management
+
+**Future Enhancements:**
+- PostgreSQL/MongoDB for multi-user support
+- Redis for caching and faster retrieval
+- Async processing with background workers
+- Rate limiting and request queuing
+- Analytics dashboard for insights
 
 

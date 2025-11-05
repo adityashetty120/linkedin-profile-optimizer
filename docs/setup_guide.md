@@ -2,41 +2,38 @@
 
 ## Prerequisites
 
-### Required
-- Python 3.8 or higher
+- Python 3.8+
 - pip package manager
-- Virtual environment tool (venv or conda)
+- Virtual environment (venv/conda)
 
-### API Keys
-You'll need API keys for:
-1. **Google Gemini API** (for AI capabilities - gemini-2.0-flash-exp)
-2. **Apify** (for LinkedIn scraping)
+## Required API Keys
 
-## Step-by-Step Setup
+| Service | Purpose | Free Tier |
+|---------|---------|-----------|
+| [Google Gemini](https://ai.google.dev/) | LLM (AI responses) | 1,500 calls/day |
+| [Apify](https://apify.com/) | LinkedIn scraping | $5 free credit |
+| [Tavily](https://tavily.com/) | Online job search (optional) | 1,000 calls/month |
 
-### 1. Clone the Repository
+## Installation Steps
+
+### 1. Clone Repository
 ```bash
-git clone https://github.com/yourusername/linkedin-profile-optimizer.git
+git clone https://github.com/adityashetty120/linkedin-profile-optimizer.git
 cd linkedin-profile-optimizer
 ```
 
 ### 2. Create Virtual Environment
 
-**Using venv:**
+**Windows:**
 ```bash
 python -m venv venv
-
-# On macOS/Linux:
-source venv/bin/activate
-
-# On Windows:
 venv\Scripts\activate
 ```
 
-**Using conda:**
+**macOS/Linux:**
 ```bash
-conda create -n linkedin-optimizer python=3.10
-conda activate linkedin-optimizer
+python -m venv venv
+source venv/bin/activate
 ```
 
 ### 3. Install Dependencies
@@ -46,171 +43,159 @@ pip install -r requirements.txt
 
 ### 4. Get API Keys
 
-#### Google Gemini API Key
-1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with your Google account
+**Google Gemini API:**
+1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Sign in with Google account
 3. Click "Create API Key"
-4. Select or create a Google Cloud project
-5. Copy the API key
+4. Copy the key
 
-#### Apify API Key
-1. Go to [Apify](https://apify.com/)
-2. Sign up for a free account
+**Apify API:**
+1. Visit [Apify Console](https://console.apify.com/account/integrations)
+2. Sign up (free tier available)
 3. Go to Settings → Integrations
-4. Copy your API token
+4. Copy API token
 
-### 5. Configure Environment Variables
+**Tavily API (Optional):**
+1. Visit [Tavily](https://app.tavily.com/)
+2. Sign up for free account
+3. Copy API key from dashboard
+
+### 5. Configure Environment
 ```bash
-cp .env.example .env
+copy .env.example .env  # Windows
+# cp .env.example .env  # macOS/Linux
 ```
 
-Edit `.env` file:
+Edit `.env`:
 ```bash
-# Required
-GEMINI_API_KEY=your_gemini_api_key_here
-APIFY_API_KEY=apify_api_xxxxxxxxxxxxxxxxxxxxxxxx
+GEMINI_API_KEY=your_gemini_key_here
+APIFY_API_KEY=apify_api_xxxxxxxx
+TAVILY_API_KEY=tvly-xxxxxxxx  # Optional
 
-# LLM Configuration
-LLM_PROVIDER=google
 LLM_MODEL=gemini-2.5-flash
-LLM_TEMPERATURE=0.7
+LLM_TEMPERATURE=0.6
 ```
 
-### 6. Test Installation
-```bash
-# Test imports
-python -c "import streamlit; import langchain; import langgraph; print('All packages installed successfully!')"
-
-# Run tests
-pytest tests/ -v
-```
-
-### 7. Run the Application
+### 6. Run Application
 ```bash
 streamlit run app.py
 ```
 
-The application should open in your browser at `http://localhost:8501`
+Access at: `http://localhost:8501`
 
 ## Configuration Options
 
-### LLM Provider Selection
-
-**For Google Gemini:**
+### LLM Model Selection
 ```bash
-LLM_PROVIDER=google
-LLM_MODEL=gemini-2.5-flash  # Latest Gemini 2.5 Flash model
+LLM_MODEL=gemini-2.5-flash       # Default (fastest, latest)
+# LLM_MODEL=gemini-1.5-flash     # Alternative (balanced)
+# LLM_MODEL=gemini-1.5-pro       # Premium (more capable)
 ```
 
-**Alternative Gemini Models:**
-- `gemini-1.5-pro`: More capable, higher cost
-- `gemini-1.5-flash`: Balanced performance
-- `gemini-2.5-flash`: Latest, fastest model with enhanced capabilities
-
-### Adjusting Temperature
-
-- Lower (0.0-0.3): More focused, deterministic responses
-- Medium (0.4-0.7): Balanced creativity and consistency
-- Higher (0.8-1.0): More creative, varied responses
+### Temperature Control
 ```bash
-LLM_TEMPERATURE=0.7
+LLM_TEMPERATURE=0.6              # Default
+# 0.0-0.3: Focused, deterministic
+# 0.4-0.7: Balanced (recommended)
+# 0.8-1.0: Creative, varied
 ```
 
-### Custom Data Directory
-```bash
-DATABASE_PATH=data/user_profiles/profiles.db
-```
-
-## Troubleshooting
-
-### Issue: Import Errors
-
-**Solution:**
-```bash
-pip install --upgrade -r requirements.txt
-```
-
-### Issue: Apify Scraping Fails
-
-**Possible Causes:**
-1. Invalid LinkedIn URL format
-2. Profile privacy settings
-3. Apify API rate limits
-
-**Solution:**
-- Ensure URL format: `https://www.linkedin.com/in/username`
-- Check Apify dashboard for errors
-- Wait if rate limited
-
-### Issue: LLM API Errors
-
-**Possible Causes:**
-1. Invalid API key
-2. Insufficient credits
-3. Rate limiting
-
-**Solution:**
-- Verify API key in `.env`
-- Check account balance/credits
-- Implement retry logic or wait
-
-### Issue: Streamlit Port Already in Use
-
-**Solution:**
+### Custom Port
 ```bash
 streamlit run app.py --server.port 8502
 ```
 
-### Issue: Memory/Performance Issues
+## Troubleshooting
 
-**Solution:**
-- Reduce conversation history length
-- Clear old session data:
+### ❌ Import Errors
 ```bash
-rm -rf data/user_profiles/session_*.json
-```
-- Use faster Gemini model (gemini-1.5-flash)
-
-## Development Setup
-
-### Enable Debug Mode
-```bash
-DEBUG=True
+pip install --upgrade pip
+pip install -r requirements.txt --force-reinstall
 ```
 
-### Install Development Dependencies
+### ❌ LinkedIn Scraping Fails
+
+**Causes:**
+- Invalid URL format (use: `https://www.linkedin.com/in/username`)
+- Private profile settings
+- Apify rate limits or insufficient credits
+
+**Fix:**
+- Verify URL format
+- Check Apify dashboard for errors/credits
+- Wait 1 minute and retry
+
+### ❌ Gemini API Errors
+
+**Causes:**
+- Invalid API key
+- Rate limit exceeded (1,500/day on free tier)
+- Network issues
+
+**Fix:**
 ```bash
-pip install pytest pytest-cov black flake8 mypy
+# Verify key in .env
+echo %GEMINI_API_KEY%  # Windows
+# echo $GEMINI_API_KEY  # macOS/Linux
+```
+- Check [Google AI Studio](https://aistudio.google.com/) for usage limits
+
+### ❌ Port Already in Use
+```bash
+# Use different port
+streamlit run app.py --server.port 8502
 ```
 
-### Pre-commit Hooks
+### ❌ Streamlit Not Found
 ```bash
-pip install pre-commit
-pre-commit install
+# Ensure virtual environment is activated
+where python  # Windows
+# which python  # macOS/Linux
+
+# Should show venv path
+pip install streamlit
 ```
 
-### Run Linting
+### 🗑️ Clear Session Data
 ```bash
-black src/ tests/
-flake8 src/ tests/
-mypy src/
+# Windows
+del data\user_profiles\session_*.json
+
+# macOS/Linux
+# rm data/user_profiles/session_*.json
 ```
 
-## Deployment
+## Testing (Optional)
 
-### Deploy to Streamlit Cloud
+```bash
+# Test imports
+python -c "import streamlit; import langchain; import langgraph; print('✅ All packages OK')"
 
-1. Push code to GitHub
-2. Go to [Streamlit Cloud](https://streamlit.io/cloud)
-3. Connect your repository
-4. Add secrets in dashboard (API keys)
-5. Deploy!
+# Run tests if available
+pytest tests/ -v
 
+# Check Python version
+python --version  # Should be 3.8+
+```
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Activate venv | `venv\Scripts\activate` (Windows) |
+| Run app | `streamlit run app.py` |
+| Change port | `streamlit run app.py --server.port 8502` |
+| Clear cache | `streamlit cache clear` |
+| View logs | Check terminal output |
 
 ## Next Steps
 
-- Read [Architecture Documentation](architecture.md)
-- Explore example queries in README
-- Customize prompts in `src/utils/prompts.py`
-- Add new job descriptions in `src/services/job_description_service.py`
-````
+✅ Load your LinkedIn profile  
+✅ Set target role and career goals  
+✅ Try "Analyze my profile"  
+✅ Experiment with job matching  
+✅ Customize prompts in `src/utils/prompts.py`
+
+📖 **Further Reading:**
+- [Architecture](architecture.md) - System design details
+- [README](../README.md) - Usage examples and features
